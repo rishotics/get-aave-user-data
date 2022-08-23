@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
-
-// Import this file to use console.log
-pragma solidity 0.8.16;
+pragma solidity ^0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "hardhat/console.sol";
 import "./interfaces/IProtocolDataProvider.sol";
@@ -17,9 +15,9 @@ contract GetAaveData {
         uint256 scaledVariableDebt;
         uint256 stableBorrowRate;
         uint256 liquidityRate;
-        uint256 stableRateLastUpdated;
-        uint256 usageAsCollateralEnabled;
-        uint256 decimals;
+        uint40 stableRateLastUpdated;
+        bool usageAsCollateralEnabled;
+        uint256 decimal;
         uint256 ltv;
         uint256 liquidationThreshold;
         uint256 reserveFactor;
@@ -58,7 +56,7 @@ contract GetAaveData {
             uint256 currentLiquidationThreshold,
             uint256 ltv,
             uint256 healthFactor,
-            address[] memory userData
+            usersTokenData[] memory userData
         )
     {
         address DATA_PROVIDER = 0xFA3bD19110d986c5e5E9DD5F69362d05035D045B;
@@ -70,19 +68,19 @@ contract GetAaveData {
             currentLiquidationThreshold,
             ltv,
             healthFactor
-        ) = getUserData(user);
+        ) = getUserData(owner);
 
-        address[] userData = new address[](tokens.length);
+        userData = new usersTokenData[](tokens.length);
 
         for (uint256 i = 0; i < tokens.length; i++) {
             usersTokenData memory data;
             address token = tokens[i];
             (
-                asset.decimal,
-                asset.ltv,
-                asset.liquidationThreshold,
+                data.decimal,
+                data.ltv,
+                data.liquidationThreshold,
                 ,
-                asset.reserveFactor,
+                data.reserveFactor,
                 ,
                 ,
                 ,
@@ -91,14 +89,14 @@ contract GetAaveData {
             ) = IProtocolDataProvider(DATA_PROVIDER)
                 .getReserveConfigurationData(token);
             (
+                data.currentATokenBalance,
                 data.currentStableDebt,
                 data.currentVariableDebt,
                 data.principalStableDebt,
                 data.scaledVariableDebt,
                 data.stableBorrowRate,
-                data.liquidityRate,
-                data.stableRateLastUpdated,
-                data.usageAsCollateralEnabled
+                ,
+                ,
             ) = IProtocolDataProvider(DATA_PROVIDER).getUserReserveData(
                 token,
                 owner
